@@ -56,16 +56,8 @@ tab1, tab2 = st.tabs(["About", "App"])
 with tab1:
     st.image('./static/beetle_icon.png')
     st.header("About the project")
-    # st.markdown("This interface and the supporting models were funded by the Ministry of Business, Innovation and Employment (MBIE) through the Strategic Science Investment Fund (SSIF) for Nationally Significant Collections and Databases, and specifically the New Zealand Arthropod Collection. The work was also aligned to the Better Border Biosecurity (B3) science collaboration through project D22.15 “Using images and deep learning for the identification of high-risk insect species”. ")
-    # st.markdown("We acknowledge the work of postgraduate students and student interns from the University of Auckland and other volunteers that took images of various taxonomic groups (Blake Taka, Chloe Loomes, Evan Cheng, Henry Kidd, Jasmine Gunton, Jingkai Wang, Maddy Pye, Michael Fong, Mingrui Wei, Thomas Blokker, Yitong Xia, Yuzhi Gong (MSc), Yuzhou Yao, Zoe Litherland), and the Capstone students from the School of Computer Science in 2023.")
-    # st.caption("")
-    # st.markdown("The identification model was trained on the following taxa:")
-    # # st.markdown("**Genera:**")
-    # # st.markdown("*Austrotephritis*, *Bactrocera*, *Ceratitis*, *Procecidochares*, *Sphenella*, *Trupanea*, *Urophora*, *Zeugodacus*.")
-    # # st.markdown("**Species:**")
-    # st.markdown("Endemic to NZ: *Austrotephritis cassiniae*, *Austrotephritis marginata*, *Austrotephritis plebeia*, *Austrotephritis thoracica*, *Sphenella fascigera*, *Trupanea alboapicata*, *Trupanea centralis*, *Trupanea extensa*, *Trupanea fenwicki*, *Trupanea longipennis*")
-    # st.markdown("Introduced to NZ as biocontrol agents: *Procecidochares alani*, *Procecidochares utilis*, *Urophora cardui*, *Urophora solstitialis*, *Urophora stylata*")
-    # st.markdown("NOT present in NZ and are listed as unwanted pests: *Bactrocera distinctus*, *Bactrocera dorsalis*, *Bactrocera facialis*, *Bactrocera frauenfeldi*, *Bactrocera kirki*, *Bactrocera melanotus*, *Bactrocera passiflorae*, *Bactrocera psidii*, *Bactrocera tryoni*, *Bactrocera umbrosus*, *Bactrocera xanthodes*, *Ceratitis capitata*, *Ceratitis cosyra*, *Ceratitis rosa*, *Zeugodacus cucurbitae*.")
+    st.markdown("The identification model was trained on the following taxa:")
+    st.markdown("*Actenonyx*, *Agonocheila*, *Allocinopus*, *Amarophilus*, *Amarotypus*, *Amaroxenus*, *Anisodactylus*, *Anomotarus*, *Aulacopodus*, *Bembidion*, *Cerabilia*, *Clivina*, *Ctenognathus*, *Demetrida*, *Dicrochile*, *Diglymma*, *Dromius*, *Duvaliomimus*, *Egadroma*, *Euthenarus*, *Gaioxenus*, *Gnathaphanus*, *Gourlayia*, *Hakaharpalus*, *Haplanister*, *Harpalus*, *Holcaspis*, *Hypharpax*, *Kenodactylus*, *Kettlotrechus*, *Kiwiplatynus*, *Kiwitachys*, *Kiwitrechus*, *Kupeharpalus*, *Kupeplatynus*, *Kupetrechus*, *Laemostenus*, *Lecanomerus*, *Loxomerus*, *Maoriharpalus*, *Maoripamborus*, *Maoritrechus*, *Maungazolus*, *Meclothrax*, *Mecodema*, *Megadromus*, *Meonochilus*, *Metaglymma*, *Molopsida*, *Neanops*, *Neocicindela*, *Neoferonia*, *Nesamblyops*, *Notagonum*, *Oarotrechus*, *Oopterus*, *Oregus*, *Parabaris*, *Paratachys*, *Pelodiaetus*, *Pentagonica*, *Pericompsus*, *Perigona*, *Philophlorus*, *Pholeodytes*, *Physolaesthus*, *Platynus*, *Plocamostethus*, *Prosopogmus*, *Prosphodrus*, *Psegmatopterus*, *Pseudoopterus*, *Rhytisternus*, *Scototrechus*, *Selenochilus*, *Syllectus*, *Synteratus*, *Tarastethus*, *Trichopsida*, *Trigonothops*, *Triplosarus*, *Tuiharpalus*, *Tuiplatynus*, *Zeanillus*, *Zecicindela*, *Zeopoecilus*, *Zolus*.")
 
 with tab2:
     # Creating sidebar
