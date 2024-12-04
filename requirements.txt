@@ -1,0 +1,9 @@
+pillow==10.2.0
+numpy==1.26.3
+keyboard==0.13.5
+psutil==6.0.0
+torch==2.4.1
+torchvision==0.19.1
+streamlit
+ultralytics==8.2.91
+opencv-python-headless
