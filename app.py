@@ -100,7 +100,14 @@ detection_model_path = './static/detection.pt'  # Detection model (thorax/elytra
 classification_model_path = './static/classification.pt'  # Classification model
 df = pd.read_csv('./static/class_counts.csv')
 
-
+if os.path.exists(file_path):
+    size = os.path.getsize(file_path)
+    st.write(f"File exists! Size: {size} bytes")
+    if size < 2000:
+        st.error("⚠️ The file is too small! This is likely a Git LFS pointer, not the actual model.")
+else:
+    st.error("File definitely not found at this path.")
+    
 try:
     detection_model = YOLO(detection_model_path)
     # Update this path if your classification model is named differently
@@ -256,22 +263,4 @@ with tab2:
     st.image('./static/example_image.jpg', width = 350)
     st.markdown("\nThe classification model was trained on the genera below. Image counts are for the original dataset before augmentation.\n")
     st.dataframe(df, height=600)
-    # st.markdown(
-    #     "*Actenonyx*, *Agonocheila*, *Allocinopus*, *Amarophilus*, *Amarotypus*, "
-    #     "*Amaroxenus*, *Anisodactylus*, *Anomotarus*, *Aulacopodus*, *Bembidion*, "
-    #     "*Cerabilia*, *Clivina*, *Ctenognathus*, *Demetrida*, *Dicrochile*, *Diglymma*, "
-    #     "*Dromius*, *Duvaliomimus*, *Egadroma*, *Euthenarus*, *Gaioxenus*, *Gnathaphanus*, "
-    #     "*Gourlayia*, *Hakaharpalus*, *Haplanister*, *Harpalus*, *Holcaspis*, *Hypharpax*, "
-    #     "*Kenodactylus*, *Kettlotrechus*, *Kiwiplatynus*, *Kiwitachys*, *Kiwitrechus*, "
-    #     "*Kupeharpalus*, *Kupeplatynus*, *Kupetrechus*, *Laemostenus*, *Lecanomerus*, "
-    #     "*Loxomerus*, *Maoriharpalus*, *Maoripamborus*, *Maoritrechus*, *Maungazolus*, "
-    #     "*Meclothrax*, *Mecodema*, *Megadromus*, *Meonochilus*, *Metaglymma*, *Molopsida*, "
-    #     "*Neanops*, *Neocicindela*, *Neoferonia*, *Nesamblyops*, *Notagonum*, *Oarotrechus*, "
-    #     "*Oopterus*, *Oregus*, *Parabaris*, *Paratachys*, *Pelodiaetus*, *Pentagonica*, "
-    #     "*Pericompsus*, *Perigona*, *Philophlorus*, *Pholeodytes*, *Physolaesthus*, "
-    #     "*Platynus*, *Plocamostethus*, *Prosopogmus*, *Prosphodrus*, *Psegmatopterus*, "
-    #     "*Pseudoopterus*, *Rhytisternus*, *Scototrechus*, *Selenochilus*, *Syllectus*, "
-    #     "*Synteratus*, *Tarastethus*, *Trichopsida*, *Trigonothops*, *Triplosarus*, "
-    #     "*Tuiharpalus*, *Tuiplatynus*, *Zeanillus*, *Zecicindela*, *Zeopoecilus*, *Zolus*."
-    # )
 
