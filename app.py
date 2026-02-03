@@ -100,14 +100,6 @@ detection_model_path = './static/detection.pt'  # Detection model (thorax/elytra
 classification_model_path = './static/classification.pt'  # Classification model
 df = pd.read_csv('./static/class_counts.csv')
 
-if os.path.exists(file_path):
-    size = os.path.getsize(file_path)
-    st.write(f"File exists! Size: {size} bytes")
-    if size < 2000:
-        st.error("⚠️ The file is too small! This is likely a Git LFS pointer, not the actual model.")
-else:
-    st.error("File definitely not found at this path.")
-    
 try:
     detection_model = YOLO(detection_model_path)
     # Update this path if your classification model is named differently
