@@ -1,0 +1,65 @@
+# --- large data / model artefacts not tracked in git ---
+# Image sets (available on Zenodo)
+imgs/
+# Training run outputs
+runs/
+ms/
+
+# --- personal reference / notes ---
+ML_pipeline.txt
+
+# --- base YOLO weights (re-downloadable from Ultralytics) ---
+yolo11n.pt
+yolo11n-cls.pt
+
+# --- session / project config that should not be public ---
+CLAUDE.md
+.claude/
+
+# --- calibration results (generated outputs, not source) ---
+calibrated/results/
+
+# --- Python artefacts ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.mypy_cache/
+.ruff_cache/
+
+# --- virtual environments ---
+venv/
+.venv/
+env/
+.env
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
+*~
+.Rhistory
+.RData
+
+# --- Dropbox ---
+.dropbox
+.dropbox.attr
+desktop.ini
+
+# --- IDE ---
+.idea/
+.vscode/
+*.code-workspace

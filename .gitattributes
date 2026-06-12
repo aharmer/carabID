@@ -1,0 +1,3 @@
+# Treat model weights as binary so git doesn't attempt text diffs
+*.pt binary
+*.pkl binary

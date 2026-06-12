@@ -1,0 +1,9 @@
+pillow==10.2.0
+numpy==1.26.3
+pandas
+torch==2.4.1
+torchvision==0.19.1
+streamlit
+ultralytics>=8.3.0
+opencv-python-headless
+scikit-learn
