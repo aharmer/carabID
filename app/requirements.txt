@@ -1,5 +1,5 @@
 pillow>=10.4.0
-numpy>=1.26.0
+numpy>=1.26.0,<2.0
 torch==2.4.1
 torchvision==0.19.1
 streamlit
