@@ -2,7 +2,7 @@
 
 **A computer vision pipeline for identifying New Zealand carabid beetles to genus from photographs.**
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://carabid.streamlit.app)
+<a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="Open CarabID app"/></a>
 
 CarabID uses a two-stage YOLO (You Only Look Once) detection and classification pipeline:
 
@@ -38,7 +38,7 @@ Model weights must be present in `app/static/` (see below).
 | `example_image.jpg` | Example beetle photograph |
 
 The `.pt` model files are tracked in this repository (< 15 MB each).  
-Training images (~4 700 images, ~9.9 GB) are archived on Zenodo.
+Training images (~4 700 images, ~9.9 GB) are archived on Zenodo: https://zenodo.org/records/20634783
 
 ---
 
@@ -109,7 +109,7 @@ python scripts/kfold_train_classification_models.py
 python scripts/kfold_assess_classification_models.py
 ```
 
-Training images are required in `imgs/final_classification_set/` (train/ and val/ sub-folders in ImageFolder format).  Download from Zenodo.
+Training images are required in `imgs/final_classification_set/` (train/ and val/ sub-folders in ImageFolder format).  Download from [Zenodo](https://zenodo.org/records/20634783).
 
 ---
 
@@ -131,19 +131,14 @@ carabID/
 │   ├── assess_classification_model.py
 │   └── plot_reliability_diagram.R
 │
-├── scripts/                        ← YOLO training scripts
-│   ├── train_classification_model.py
-│   ├── kfold_train_classification_models.py
-│   ├── kfold_assess_classification_models.py
-│   └── assess_classification_model.py
-│
-└── imgs/new_arch/                  ← experimental BioCLIP pipeline (paused)
-    ├── carabid/                    ← Python package
-    ├── config.yaml
-    └── metadata_new.csv
+└── scripts/                        ← YOLO training scripts
+    ├── train_classification_model.py
+    ├── kfold_train_classification_models.py
+    ├── kfold_assess_classification_models.py
+    └── assess_classification_model.py
 ```
 
-`imgs/` (training data) and `runs/` (model checkpoints) are excluded from version control.
+`imgs/` (training data, available on [Zenodo](https://zenodo.org/records/20634783)) and `runs/` (model checkpoints) are excluded from version control.
 
 ---
 
