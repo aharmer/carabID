@@ -2,7 +2,12 @@
 
 **A computer vision pipeline for identifying New Zealand carabid beetles to genus from photographs.**
 
-<a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="Open CarabID app"/></a> **Streamlit App**
+<table border="0">
+  <tr>
+    <td valign="middle"><a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="CarabID"/></a></td>
+    <td valign="middle"><a href="https://carabid.streamlit.app">Streamlit App</a></td>
+  </tr>
+</table>
 
 CarabID uses a two-stage YOLO (You Only Look Once) detection and classification pipeline:
 
