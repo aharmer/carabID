@@ -2,7 +2,7 @@
 
 **A computer vision pipeline for identifying New Zealand carabid beetles to genus from photographs.**
 
-<a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="Open CarabID app"/></a>
+<a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="Open CarabID app"/></a> **Streamlit App**
 
 CarabID uses a two-stage YOLO (You Only Look Once) detection and classification pipeline:
 
@@ -170,4 +170,4 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
 If you use CarabID in your research, please cite:
 
-> Gong, X., Harmer, A. M. T., & Ward, D. F. (in review). CarabID: a computer vision pipeline for identification of New Zealand carabid beetles.
+> Gong, Y., Harmer, A. M. T., & Ward, D. F. (in review). CarabID: a computer vision pipeline for identification of New Zealand carabid beetles.
