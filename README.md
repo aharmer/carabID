@@ -1,8 +1,8 @@
 # CarabID
 
 **A computer vision pipeline for identifying New Zealand carabid beetles to genus from photographs.**
-<table style="border: none !important; border-collapse: collapse !important; border-width: 0px !important;">
-  <tr style="border: none !important; border-width: 0px !important;">
+<table>
+  <tr>
     <td valign="middle"><a href="https://carabid.streamlit.app"><img src="app/static/carabid_icon.png" height="50" alt="CarabID"/></a></td>
     <td valign="middle"><a href="https://carabid.streamlit.app">Streamlit App</a></td>
   </tr>
