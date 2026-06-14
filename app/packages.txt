@@ -1,4 +1,4 @@
-libgl1
+libglvnd0
 libglib2.0-0
 libgomp1
 libsm6
