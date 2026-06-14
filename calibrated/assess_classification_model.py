@@ -376,6 +376,25 @@ def main():
         out_dir / f"overall_metrics_{args.split}.csv", index=False
     )
 
+    # Per-prediction CSV: one row per image with raw + calibrated confidence.
+    # Used for downstream analysis (e.g. comparing confidence scores between
+    # correct and incorrect classifications).
+    per_pred = pd.DataFrame({
+        "image_path":     [eval_ds.samples[i][0] for i in range(len(res["labels"]))],
+        "true_class":     [class_names[l] for l in res["labels"]],
+        "pred_class":     [class_names[p] for p in cal_preds],
+        "correct":        res["labels"] == cal_preds,
+        "raw_confidence": res["raw_probs"].max(axis=1).round(6),
+        "cal_confidence": res["cal_probs"].max(axis=1).round(6),
+    })
+    if res["ood_scores"] is not None:
+        per_pred["ood_score"] = res["ood_scores"].round(6)
+    per_pred.to_csv(
+        out_dir / f"per_prediction_{args.split}.csv", index=False
+    )
+    print(f"  Saved per-prediction CSV  → "
+          f"{out_dir / f'per_prediction_{args.split}.csv'}")
+
     # ---- save plots ----
     if calibrated:
         plot_reliability(
