@@ -1,0 +1,35 @@
+Linear mixed-effects model: cal_confidence ~ correct + (1 | true_class)
+Fitted with lme4/lmerTest; p-values via Satterthwaite approximation
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: cal_confidence ~ correct + (1 | true_class)
+   Data: df
+
+REML criterion at convergence: -7335.4
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-14.3649   0.0593   0.1020   0.1678   3.7328 
+
+Random effects:
+ Groups     Name        Variance  Std.Dev.
+ true_class (Intercept) 7.172e-05 0.008469
+ Residual               1.698e-03 0.041209
+Number of obs: 2091, groups:  true_class, 76
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept) 5.694e-01  1.410e-02 2.011e+03   40.37   <2e-16 ***
+correctTRUE 4.227e-01  1.412e-02 2.042e+03   29.94   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr)
+correctTRUE -0.995
+
+Random effects variance partition:
+         grp        var1 var2         vcov       sdcor
+1 true_class (Intercept) <NA> 7.171785e-05 0.008468639
+2   Residual        <NA> <NA> 1.698183e-03 0.041209018
