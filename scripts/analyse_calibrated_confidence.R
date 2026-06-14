@@ -21,6 +21,7 @@ library(lme4)
 library(lmerTest)   # adds p-values to lmer summary via Satterthwaite df
 library(dplyr)
 library(scales)
+library(patchwork)
 
 # --------------------------------------------------------------------------- #
 #  Paths                                                                       #
@@ -99,58 +100,72 @@ print(fe)
 cat("  (Full summary saved to confidence_lmm_summary.txt)\n")
 
 # --------------------------------------------------------------------------- #
-#  3. Distribution plot                                                        #
+#  3. Distribution plot (two-panel)                                            #
 # --------------------------------------------------------------------------- #
-# Density is misleading when n_incorrect = 9 vs n_correct = 2082.
-# Box plot + jitter shows both groups clearly at their natural scales:
-#   - correct: boxplot with light jitter (n too large for individual points)
-#   - incorrect: individual points overlaid (all 9 visible)
+# Panel A (full scale): shows the stark contrast between groups at 0-100%.
+#   Correct group appears as a dense band at the top; incorrect group shows
+#   all 9 individual points spread across 30-75%.
+# Panel B (zoomed): 90-100% range reveals the correct group's internal
+#   distribution, which is invisible at the full scale.
 
 df$Classification <- factor(
   ifelse(df$correct, "Correct", "Incorrect"),
   levels = c("Correct", "Incorrect")
 )
 
-df_correct   <- df[df$correct,   ]
-df_incorrect <- df[!df$correct,  ]
+df_correct   <- df[df$correct,  ]
+df_incorrect <- df[!df$correct, ]
 
-n_label <- data.frame(
-  Classification = factor(c("Correct", "Incorrect"),
-                           levels = c("Correct", "Incorrect")),
-  label          = c(sprintf("n = %d", nrow(df_correct)),
-                     sprintf("n = %d",  nrow(df_incorrect))),
-  y              = 0.02
-)
+col_correct   <- "#0072B2"
+col_incorrect <- "#D55E00"
 
-p <- ggplot(df, aes(x = Classification, y = cal_confidence,
-                    fill = Classification, colour = Classification)) +
+shared_theme <- theme_bw(base_size = 11) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position  = "none")
+
+# Panel A — full scale, both groups
+p_all <- ggplot(df, aes(x = Classification, y = cal_confidence,
+                        fill = Classification, colour = Classification)) +
   geom_boxplot(width = 0.45, outlier.shape = NA, alpha = 0.35,
                linewidth = 0.6) +
-  geom_jitter(data    = df_correct,
-              width   = 0.18, size = 0.35, alpha = 0.12, shape = 16) +
-  geom_jitter(data    = df_incorrect,
-              width   = 0.08, size = 2.8,  alpha = 0.85, shape = 21,
-              colour  = "#D55E00", fill = "#D55E00") +
-  geom_text(data  = n_label,
-            aes(x = Classification, y = y, label = label),
-            colour = "grey40", size = 3.2, inherit.aes = FALSE) +
-  scale_fill_manual(values   = c("Correct" = "#0072B2",
-                                 "Incorrect" = "#D55E00")) +
-  scale_colour_manual(values = c("Correct" = "#0072B2",
-                                 "Incorrect" = "#D55E00")) +
+  geom_jitter(data   = df_correct,
+              width  = 0.16, size = 0.3, alpha = 0.10, shape = 16) +
+  geom_jitter(data   = df_incorrect,
+              width  = 0.08, size = 2.8, alpha = 0.85, shape = 21,
+              colour = col_incorrect, fill = col_incorrect) +
+  annotate("text", x = 1, y = 0.03,
+           label = sprintf("n = %d", nrow(df_correct)),
+           colour = "grey40", size = 3.2) +
+  annotate("text", x = 2, y = 0.03,
+           label = sprintf("n = %d", nrow(df_incorrect)),
+           colour = "grey40", size = 3.2) +
+  scale_fill_manual(values   = c("Correct" = col_correct,
+                                 "Incorrect" = col_incorrect)) +
+  scale_colour_manual(values = c("Correct" = col_correct,
+                                 "Incorrect" = col_incorrect)) +
   scale_y_continuous(labels = percent_format(accuracy = 1)) +
   coord_cartesian(ylim = c(0, 1.005)) +
-  labs(x = NULL, y = "Calibrated confidence score") +
-  theme_bw(base_size = 11) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position  = "none"
-  )
+  labs(x = NULL, y = "Calibrated confidence score", tag = "A") +
+  shared_theme
+
+# Panel B — correct group zoomed to 90-100%
+p_zoom <- ggplot(df_correct, aes(x = "Correct", y = cal_confidence)) +
+  geom_boxplot(width = 0.4, fill = col_correct, colour = col_correct,
+               alpha = 0.35, outlier.shape = NA, linewidth = 0.6) +
+  geom_jitter(width = 0.14, size = 0.9, alpha = 0.25,
+              colour = col_correct, shape = 16) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1),
+                     position = "right") +
+  coord_cartesian(ylim = c(0.90, 1.005)) +
+  labs(x = NULL, y = "Calibrated confidence (zoomed)", tag = "B") +
+  shared_theme
+
+p_combined <- p_all + p_zoom + plot_layout(widths = c(2, 1.5))
 
 ggsave(file.path(out_dir, "confidence_distribution.pdf"),
-       p, width = 4.5, height = 5, device = "pdf")
+       p_combined, width = 7.5, height = 5, device = "pdf")
 ggsave(file.path(out_dir, "confidence_distribution.png"),
-       p, width = 4.5, height = 5, dpi = 300)
+       p_combined, width = 7.5, height = 5, dpi = 300)
 cat("  Saved: confidence_distribution.pdf / .png\n")
 
 cat("\nDone. All outputs written to", out_dir, "\n")
