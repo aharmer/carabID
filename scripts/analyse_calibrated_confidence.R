@@ -119,7 +119,7 @@ df_incorrect <- df[!df$correct, ]
 col_correct   <- "#0072B2"
 col_incorrect <- "#D55E00"
 
-shared_theme <- theme_bw(base_size = 11) +
+shared_theme <- theme_classic(base_size = 11) +
   theme(panel.grid.minor = element_blank(),
         legend.position  = "none")
 

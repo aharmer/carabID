@@ -126,7 +126,7 @@ p_scatter <- ggplot(df, aes(x = log10(n_images), y = f1_mean)) +
     y       = "Mean F1 score (cross-validation test set)",
     caption = caption_text
   ) +
-  theme_bw(base_size = 11) +
+  theme_classic(base_size = 11) +
   theme(
     panel.grid.minor = element_blank(),
     plot.caption     = element_text(size = 8, colour = "grey40")
