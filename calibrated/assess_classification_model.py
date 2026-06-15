@@ -232,6 +232,7 @@ def plot_reliability(raw_probs, cal_probs, labels, preds_raw, preds_cal,
 
     ax.plot([0, 1], [0, 1], "--", color="grey", label="Perfect calibration")
     ax.set_xlim(left=0.5)
+    ax.set_ylim(bottom=0.5)
     ax.set_xlabel("Mean predicted confidence")
     ax.set_ylabel("Fraction correct")
     ax.set_title("Reliability diagram")
