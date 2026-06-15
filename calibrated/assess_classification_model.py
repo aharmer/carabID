@@ -212,11 +212,11 @@ def compute_metrics(results, class_names):
 
 def plot_reliability(raw_probs, cal_probs, labels, preds_raw, preds_cal,
                      out_path):
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(6, 5))
 
-    for ax, probs, preds, title in [
-        (axes[0], raw_probs, preds_raw, "Before calibration"),
-        (axes[1], cal_probs, preds_cal, "After calibration"),
+    for probs, preds, label, color in [
+        (raw_probs, preds_raw, "Before calibration", "#E69F00"),
+        (cal_probs, preds_cal, "After calibration",  "#0072B2"),
     ]:
         correct    = (preds == labels).astype(int)
         confidence = probs.max(axis=1)
@@ -228,12 +228,14 @@ def plot_reliability(raw_probs, cal_probs, labels, preds_raw, preds_cal,
             frac_pos, mean_pred = calibration_curve(
                 correct, confidence, n_bins=5
             )
-        ax.plot(mean_pred, frac_pos, "s-", label="Model", color="steelblue")
-        ax.plot([0, 1], [0, 1], "k--", label="Perfect")
-        ax.set_title(title)
-        ax.set_xlabel("Mean predicted confidence")
-        ax.set_ylabel("Fraction correct")
-        ax.legend(fontsize=8)
+        ax.plot(mean_pred, frac_pos, "s-", label=label, color=color)
+
+    ax.plot([0, 1], [0, 1], "--", color="grey", label="Perfect calibration")
+    ax.set_xlim(left=0.5)
+    ax.set_xlabel("Mean predicted confidence")
+    ax.set_ylabel("Fraction correct")
+    ax.set_title("Reliability diagram")
+    ax.legend(fontsize=9)
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=150)
