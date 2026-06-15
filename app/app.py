@@ -360,18 +360,42 @@ with tab2:
 
     st.subheader("Interpreting results")
 
-    st.markdown("#### Confidence score")
+    st.markdown("#### Detection confidence")
     st.markdown(
-        "The confidence percentage answers the question: *'Of the 76 genera "
-        "the model knows, which one does this look most like?'* It is a "
-        "relative comparison — the model scores every known genus and reports "
-        "how much of its 'vote' went to the top candidate. A high confidence "
+        "Before the beetle can be identified, the app must first *find* it in "
+        "the photograph. This is done by the detection model, which scans the "
+        "image and draws a bounding box around the beetle's thorax and elytra.\n\n"
+        "**Detection confidence** reflects how certain the detection model is "
+        "that a real beetle is present in a given bounding box — not what genus "
+        "it belongs to. A detection confidence of 80% means the model is 80% "
+        "sure it has located a beetle, regardless of species.\n\n"
+        "The **Detection confidence threshold** slider in the sidebar controls "
+        "the minimum detection confidence required for a bounding box to be "
+        "accepted. Raising the threshold reduces false detections (e.g. shadows "
+        "or debris mistaken for a beetle) but may miss real beetles in poor-quality "
+        "images. Lowering it catches more detections but may introduce false "
+        "positives. The default of 50% works well for clear, well-lit photographs."
+    )
+
+    st.markdown("#### Classification confidence")
+    st.markdown(
+        "Once a beetle has been detected and cropped, the classification model "
+        "compares the crop against all 76 genera it has been trained on.\n\n"
+        "**Classification confidence** answers a different question from "
+        "detection confidence: *'Of the 76 genera the model knows, which one "
+        "does this look most like, and by how much?'* It is a relative comparison "
+        "— the model scores every known genus and reports how much of its "
+        "'vote' went to the top candidate. A high classification confidence "
         "means the model strongly prefers one genus over all others, but it "
         "does not on its own tell you whether the specimen actually belongs to "
         "any of those 76 genera.\n\n"
         "Confidence values are adjusted using *temperature scaling* (see below) "
         "so that, for example, an 80% confidence should correspond to the model "
-        "being correct roughly 80% of the time."
+        "being correct roughly 80% of the time.\n\n"
+        "The **Classification confidence threshold** slider controls the minimum "
+        "classification confidence required for a prediction to be displayed. "
+        "Raising it hides uncertain predictions; lowering it shows more candidates, "
+        "which can be useful when the top prediction is genuinely ambiguous."
     )
 
     st.markdown("#### Familiarity score")
