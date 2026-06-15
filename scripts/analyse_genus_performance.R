@@ -24,7 +24,7 @@ library(scales)
 
 f1_path <- file.path(
   "runs", "classify",
-  "carabid_cv_11ncls_ep30_autobatch_do02_lr001_cv_assessment",
+  "carabid_cv_v2_11ncls_ep30_do02_lr001_cv_assessment",
   "cv_per_class_summary_test.csv"
 )
 counts_path <- file.path("app", "static", "class_counts.csv")

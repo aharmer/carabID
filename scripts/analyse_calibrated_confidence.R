@@ -6,7 +6,7 @@
 #   2. Linear mixed-effects model with genus as random intercept
 #      (addresses reviewer request for species-level decomposition)
 #
-# Input:  runs/.../results_calibrated/per_prediction_val.csv
+# Input:  runs/.../results_calibrated/per_prediction_test.csv
 # Output: scripts/results/confidence_ttest.csv
 #         scripts/results/confidence_lmm_summary.txt
 #         scripts/results/confidence_distribution.pdf/.png
@@ -29,8 +29,8 @@ library(patchwork)
 
 pred_path <- file.path(
   "runs", "classify",
-  "final_carabid_model_11ncls_ep30_autobatch_do02_lr001",
-  "results_calibrated", "per_prediction_val.csv"
+  "final_carabid_v2_11ncls_ep30_do02_lr001",
+  "results_calibrated", "per_prediction_test.csv"
 )
 out_dir <- file.path("scripts", "results")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
