@@ -211,6 +211,12 @@ detection_model, classification_model, scaler, ood_detector, calibration_loaded 
 df_classes  = load_class_table()
 class_names = classification_model.names   # dict {int: str}
 
+LOW_SAMPLE_THRESHOLD = 20
+training_counts = {
+    row["Class Name"].lower(): int(row["Image Count"])
+    for _, row in df_classes.iterrows()
+}
+
 tab1, tab2 = st.tabs(["App", "About"])
 
 with tab1:
@@ -336,6 +342,15 @@ with tab1:
                                             f"Familiarity: {ood_familiarity_text(ood_score, ood_detector.threshold)}  \n"
                                             f"_(novelty score {ood_score:.0f} / limit {ood_detector.threshold:.0f})_"
                                         )
+                                    n_train = training_counts.get(top_genus.lower())
+                                    if n_train is not None and n_train < LOW_SAMPLE_THRESHOLD:
+                                        st.warning(
+                                            f"⚠ **Limited training data** — *{top_genus}* was "
+                                            f"represented by only {n_train} original images during "
+                                            f"training. Performance estimates for this genus are "
+                                            f"less reliable; verify this identification against "
+                                            f"reference material before finalising."
+                                        )
                                     with st.expander("Details"):
                                         for rank, (genus, conf) in enumerate(top_preds, 1):
                                             st.text(f"{rank}. {genus} ({conf}%)")
@@ -445,9 +460,26 @@ with tab2:
         "warning is shown.".format(T=scaler.temperature.item() if scaler else 1.0)
     )
 
+    st.markdown("#### Limited training data warning")
+    st.markdown(
+        "Some genera in the dataset are represented by a small number of original "
+        "specimen images (fewer than 20). Augmentation increases the size of the "
+        "training set but cannot substitute for genuine biological variation across "
+        "specimens. For these genera, cross-validation performance estimates are "
+        "substantially more variable, and a correct identification in one fold may "
+        "not reflect reliable generalisation.\n\n"
+        "When the top-ranked prediction belongs to a genus with fewer than 20 "
+        "original training images, the app displays a warning. In these cases, "
+        "the identification should be treated as a lead rather than a confirmed "
+        "result, and verified against reference material or expert opinion before "
+        "finalising."
+    )
+
     st.subheader("Trained genera")
     st.markdown(
         "The classification model was trained on the genera listed below. "
-        "Image counts are for the original dataset before augmentation."
+        "Image counts are for the original dataset before augmentation. "
+        f"Genera with fewer than {LOW_SAMPLE_THRESHOLD} images are flagged "
+        "with a warning at inference time."
     )
     st.dataframe(df_classes, height=600)

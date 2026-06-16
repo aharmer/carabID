@@ -73,7 +73,7 @@ p <- ggplot(plot_df, aes(x = mean_conf, y = frac_correct,
   geom_abline(slope = 1, intercept = 0,
               linetype = "dashed", colour = "grey60", linewidth = 0.6) +
   geom_line(linewidth = 0.8) +
-  geom_point(shape = 15, size = 2.5) +
+  geom_point(shape = 19, size = 2.5) +
   scale_colour_manual(
     values = c("Before calibration" = col_before,
                "After calibration"  = col_after)
@@ -94,7 +94,8 @@ p <- ggplot(plot_df, aes(x = mean_conf, y = frac_correct,
   ) +
   theme_classic(base_size = 11) +
   theme(
-    legend.position  = c(0.28, 0.12),
+    legend.position = "inside",
+    legend.position.inside  = c(0.85, 0.12),
     legend.background = element_rect(fill = "white", colour = NA),
     panel.grid.minor  = element_blank()
   )
