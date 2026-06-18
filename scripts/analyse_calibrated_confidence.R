@@ -110,7 +110,7 @@ cat("  (Full summary saved to confidence_lmm_summary.txt)\n")
 
 df$Classification <- factor(
   ifelse(df$correct, "Correct", "Incorrect"),
-  levels = c("Correct", "Incorrect")
+  levels = c("Incorrect", "Correct")
 )
 
 df_correct   <- df[df$correct,  ]
@@ -134,10 +134,10 @@ p_all <- ggplot(df, aes(x = Classification, y = cal_confidence,
               width  = 0.08, size = 2.8, alpha = 0.85, shape = 21,
               colour = col_incorrect, fill = col_incorrect) +
   annotate("text", x = 1, y = 0.03,
-           label = sprintf("n = %d", nrow(df_correct)),
+           label = sprintf("n = %d", nrow(df_incorrect)),
            colour = "grey40", size = 3.2) +
   annotate("text", x = 2, y = 0.03,
-           label = sprintf("n = %d", nrow(df_incorrect)),
+           label = sprintf("n = %d", nrow(df_correct)),
            colour = "grey40", size = 3.2) +
   scale_fill_manual(values   = c("Correct" = col_correct,
                                  "Incorrect" = col_incorrect)) +
