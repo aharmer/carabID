@@ -43,6 +43,16 @@ logging.getLogger("ultralytics").setLevel(logging.ERROR)
 # Static assets live alongside this file: app/static/
 STATIC_DIR = (Path(__file__).parent / "static").resolve()
 
+# The novelty threshold lives on the calibration artefact, so every script
+# agrees on one value.  It is set to 2000 rather than the 5 % FPR fit of 1784:
+# validated against genuinely novel genera (imgs/ood_test/, see
+# scripts/evaluate_novelty_detection.py), 2000 holds the same novel-genus
+# recall (93 %) while halving false alarms on known specimens (8 % -> 4 %).
+#
+# It cannot be raised much further to accommodate low-magnification field
+# photos: recall collapses to 73 % at 2331 and 13 % at 3067.  That gap has to
+# be closed in training (resolution-jitter augmentation), not at the threshold.
+
 # Calibration utilities live in calibrated/
 sys.path.insert(0, str(Path(__file__).parent.parent / "calibrated"))
 from calibration_utils import MahalanobisOOD, TemperatureScaler
@@ -79,8 +89,41 @@ def format_genus_name(cls_name: str) -> str:
     return " ".join(parts)
 
 
+def detect_best_orientation(image: Image.Image, model, conf: float):
+    """Detect on the image and on a 90°-rotated copy, keeping whichever view
+    the detector is more confident about.
+
+    Both models were trained only on landscape specimens (no rotation
+    augmentation), so an uncorrected portrait photo loses about a quarter of
+    detections and most of the classification accuracy.  The rotation must be
+    chosen *before* trusting any box: on a portrait image the box is often
+    missing altogether, and poorly localised when present, so its shape cannot
+    be used to infer the orientation.
+
+    Returns (view, det_results, rotation).  Boxes are measured against `view`,
+    so any crop must be taken from `view` — not from the original image.
+    """
+    best = None
+    for rot in (0, 90):
+        view    = image.rotate(rot, expand=True) if rot else image
+        results = model.predict(contrast_stretch(view), conf=conf, verbose=False)
+        boxes   = results[0].boxes
+        if not boxes or len(boxes) == 0:
+            continue
+        top_conf = float(max(b.conf[0] for b in boxes))
+        if best is None or top_conf > best[0]:
+            best = (top_conf, view, results, rot)
+    if best is None:
+        return image, None, 0
+    return best[1], best[2], best[3]
+
+
 def crop_beetle(image: Image.Image, detection_results) -> Image.Image | None:
-    """Return the largest detected crop, or None."""
+    """Return the largest detected crop, or None.
+
+    Box coordinates are in the coordinate space of the image detection ran on,
+    so `image` must be that same image (not a differently sized copy).
+    """
     boxes = detection_results[0].boxes
     if not boxes or len(boxes) == 0:
         return None
@@ -151,7 +194,7 @@ def ood_familiarity_text(ood_score: float, threshold: float) -> str:
     elif ratio < 1.0:
         return "Somewhat unusual — verify identification carefully"
     else:
-        return "Looks unlike any trained genus"
+        return "Unusual for the training set — verify carefully"
 
 
 def get_top_predictions(probs: np.ndarray, class_names: list[str],
@@ -164,6 +207,53 @@ def get_top_predictions(probs: np.ndarray, class_names: list[str],
     ]
     predictions.sort(key=lambda x: x[1], reverse=True)
     return predictions[:top_k]
+
+
+def render_guidance():
+    """Photography guidance.
+
+    The figures quoted here are measured from the training set and the
+    deployed model, not rules of thumb: every training image is landscape
+    with the beetle body spanning ~300 px and filling ~17 % of the frame.
+    Portrait photos are corrected automatically by detect_best_orientation
+    (92 % top-1 vs 98 % for a landscape original), so orientation is stated
+    as a preference rather than a requirement.
+    """
+    with st.container(border=True):
+        st.markdown("#### How to photograph your specimen")
+        st.caption(
+            "The model was trained on museum specimen photographs — the closer "
+            "your photo matches them, the more reliable the identification."
+        )
+        st.image(str(STATIC_DIR / "guidance_examples.png"),
+                 use_container_width=True)
+        left, right = st.columns(2)
+        with left:
+            st.markdown(
+                "**View** — dorsal (straight down onto the beetle's back), "
+                "specimen flat and square to the camera.\n\n"
+                "**Orientation** — **landscape** is best, long axis "
+                "horizontal, head either way. Portrait photos are rotated "
+                "automatically, but a landscape original is still a little "
+                "more reliable.\n\n"
+                "**Framing** — whole beetle in frame with a small margin, the "
+                "body (thorax + elytra) should fill roughly a fifth of "
+                "the image."
+            )
+        with right:
+            st.markdown(
+                "**Resolution** — width at least **1200 px**, with the beetle's "
+                "body spanning **600 px or more**. Larger is better.\n\n"
+                "**Background** — plain and uncluttered (white or pale), no "
+                "leaf litter, soil, or fingers in shot.\n\n"
+                "**Focus & lighting** — sharp and evenly lit, surface details visible, with minimal "
+                "shadows and glare."
+            )
+        st.caption(
+            "Field photos of live beetles are identified far less reliably and "
+            "will be flagged as *unusual images* — treat those results as "
+            "tentative and verify them against reference material."
+        )
 
 
 # --------------------------------------------------------------------------- #
@@ -207,11 +297,38 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Streamlit defaults the popover panel to max-width 704px and right-aligns it
+# to its trigger, so a popover in a left-hand grid column renders off the page.
+# Constraining it to roughly card width keeps it on screen.  The triggers are
+# all warnings, so they get an amber treatment to read as such at a glance.
+st.markdown(
+    """
+    <style>
+      [data-testid="stPopoverBody"] { max-width: 300px !important; }
+      button[data-testid="stPopoverButton"] {
+          background-color: #fff4e5;
+          border: 1px solid #ffb74d;
+          color: #8a4b00;
+      }
+      button[data-testid="stPopoverButton"]:hover {
+          background-color: #ffe8cc;
+          border-color: #fb8c00;
+          color: #6d3b00;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 detection_model, classification_model, scaler, ood_detector, calibration_loaded = load_models()
 df_classes  = load_class_table()
 class_names = classification_model.names   # dict {int: str}
 
 LOW_SAMPLE_THRESHOLD = 20
+
+# Result cards are pinned to a fixed height so the grid stays aligned across
+# uploads of differing aspect ratio.  Anything taller scrolls within the card.
+CARD_HEIGHT = 540
 training_counts = {
     row["Class Name"].lower(): int(row["Image Count"])
     for _, row in df_classes.iterrows()
@@ -238,14 +355,26 @@ with tab1:
                 "calibration and novelty detection."
             )
 
+        # A file_uploader cannot be emptied by assigning to its session state;
+        # rebuilding it under a fresh key is the supported way to clear it.
+        if "uploader_key" not in st.session_state:
+            st.session_state.uploader_key = 0
+
         source_imgs = st.file_uploader(
             "Upload images...",
             type=("jpg", "jpeg", "png", "bmp", "webp"),
             accept_multiple_files=True,
+            key=f"uploader_{st.session_state.uploader_key}",
         )
 
+        if source_imgs:
+            if st.button(f"Clear all ({len(source_imgs)})",
+                         use_container_width=True):
+                st.session_state.uploader_key += 1
+                st.rerun()
+
         detection_confidence      = st.slider(
-            "Detection confidence threshold", 25, 100, 50) / 100
+            "Detection confidence threshold", 10, 100, 50) / 100
         classification_confidence = st.slider(
             "Classification confidence threshold", 1, 100, 25) / 100
         top_k = st.slider("Top predictions to show", 1, 5, 3)
@@ -254,7 +383,15 @@ with tab1:
     st.caption("Upload photos of ground beetles.")
     st.caption("Then click :blue[Identify] and check the results.")
 
-    if st.sidebar.button("Identify"):
+    identify     = st.sidebar.button("Identify")
+    show_results = bool(identify and source_imgs)
+
+    # The guidance sits up front until there are results to look at, then moves
+    # below them so the identifications stay in view.
+    if not show_results:
+        render_guidance()
+
+    if identify:
         if not source_imgs:
             st.error("Please upload at least one image first!")
         else:
@@ -266,32 +403,32 @@ with tab1:
                     if i % COLS_PER_ROW == 0:
                         cols = st.columns(COLS_PER_ROW)
                     with cols[i % COLS_PER_ROW]:
-                        with st.container(border=True):
+                        # Fixed height keeps the grid aligned: uploads vary in
+                        # aspect ratio, so cards would otherwise stagger.
+                        with st.container(border=True, height=CARD_HEIGHT):
                             st.caption(source_img.name)
                             try:
-                                # 1. Load & preprocess
+                                # 1. Load
                                 uploaded = PIL.Image.open(source_img)
                                 if uploaded.mode != "RGB":
                                     uploaded = uploaded.convert("RGB")
-                                prepped = contrast_stretch(
-                                    uploaded.resize((640, 640))
+
+                                # 2. Detection, orientation-corrected.  Runs at
+                                # native resolution (YOLO letterboxes
+                                # internally, so non-square photos are not
+                                # distorted).  The crop must come from `view`,
+                                # the image the boxes were measured against.
+                                view, det_results, rotation = detect_best_orientation(
+                                    uploaded, detection_model, detection_confidence
                                 )
 
-                                # 2. Detection
-                                det_results = detection_model.predict(
-                                    prepped,
-                                    conf=detection_confidence,
-                                    verbose=False,
-                                )
-
-                                if (not det_results[0].boxes
-                                        or len(det_results[0].boxes) == 0):
+                                if det_results is None:
                                     st.image(uploaded, use_container_width=True)
                                     st.warning("No beetle detected")
                                     continue
 
                                 det_plot = det_results[0].plot()[:, :, ::-1]
-                                cropped  = crop_beetle(uploaded, det_results)
+                                cropped  = crop_beetle(view, det_results)
 
                                 if cropped is None:
                                     st.image(det_plot, use_container_width=True)
@@ -314,52 +451,98 @@ with tab1:
 
                                 # 4. Display
                                 st.image(det_plot, use_container_width=True)
-
-                                if is_novel:
-                                    st.error(
-                                        "⚠ **Novel genus** — this specimen does "
-                                        "not resemble any trained class."
+                                if rotation:
+                                    st.caption(
+                                        f"↻ Rotated {rotation}° to landscape — "
+                                        "the models expect horizontal specimens."
                                     )
-                                    if ood_score is not None:
-                                        st.caption(
-                                            f"Familiarity: {ood_familiarity_text(ood_score, ood_detector.threshold)}  \n"
-                                            f"_(novelty score {ood_score:.0f} exceeds limit of {ood_detector.threshold:.0f})_"
-                                        )
-                                    with st.expander("Best guess anyway"):
-                                        if top_preds:
-                                            for rank, (genus, conf) in enumerate(top_preds, 1):
-                                                st.text(f"{rank}. {genus} ({conf}%)")
-                                        else:
-                                            st.text("No predictions above threshold")
 
-                                elif top_preds:
+                                ood_limit = (
+                                    ood_detector.threshold
+                                    if ood_detector is not None else None
+                                )
+
+                                if top_preds:
                                     top_genus, top_conf = top_preds[0]
                                     st.markdown(f"**{top_genus}**")
                                     st.progress(top_conf / 100)
                                     st.caption(f"{top_conf}% confidence (calibrated)")
-                                    if ood_score is not None:
+
+                                    # Domain / familiarity check (Mahalanobis OOD).
+                                    # Flags are compact triggers so every card in
+                                    # the grid stays the same height; a popover
+                                    # floats its detail rather than growing the
+                                    # card the way an inline warning would.
+                                    if is_novel:
+                                        with st.popover("⚠ Unusual image",
+                                                        use_container_width=True):
+                                            st.markdown(
+                                                "This specimen sits far from everything the "
+                                                "model was trained on. That can mean one of "
+                                                "two quite different things:\n\n"
+                                                "- **The photograph is unusual** — the training "
+                                                "images are sharp, high-magnification "
+                                                "**dorsal** views on a **plain background**, "
+                                                "so a field photo or a distant shot lands "
+                                                "far from them.\n"
+                                                "- **The genus may not be one the model "
+                                                "knows** — only 76 New Zealand carabid genera "
+                                                "are covered, and anything outside that set "
+                                                "can still only be matched to the closest of "
+                                                "them.\n\n"
+                                                "The app cannot tell these apart, so treat the "
+                                                "identification with caution: check **All "
+                                                "candidates** and verify against reference "
+                                                "material."
+                                            )
+                                            if ood_score is not None:
+                                                st.caption(
+                                                    f"Novelty score {ood_score:.0f} "
+                                                    f"(limit {ood_limit:.0f})"
+                                                )
+                                    elif ood_score is not None:
                                         st.caption(
-                                            f"Familiarity: {ood_familiarity_text(ood_score, ood_detector.threshold)}  \n"
-                                            f"_(novelty score {ood_score:.0f} / limit {ood_detector.threshold:.0f})_"
+                                            f"Familiarity: "
+                                            f"{ood_familiarity_text(ood_score, ood_limit)}"
                                         )
+
                                     n_train = training_counts.get(top_genus.lower())
                                     if n_train is not None and n_train < LOW_SAMPLE_THRESHOLD:
-                                        st.warning(
-                                            f"⚠ **Limited training data** — *{top_genus}* was "
-                                            f"represented by only {n_train} original images during "
-                                            f"training. Performance estimates for this genus are "
-                                            f"less reliable; verify this identification against "
-                                            f"reference material before finalising."
-                                        )
-                                    with st.expander("Details"):
+                                        with st.popover("⚠ Limited training data",
+                                                        use_container_width=True):
+                                            st.markdown(
+                                                f"*{top_genus}* was represented by only "
+                                                f"**{n_train}** original images during training. "
+                                                "Performance estimates for this genus are less "
+                                                "reliable; verify this identification against "
+                                                "reference material before finalising."
+                                            )
+                                    with st.expander("All candidates"):
                                         for rank, (genus, conf) in enumerate(top_preds, 1):
                                             st.text(f"{rank}. {genus} ({conf}%)")
 
                                 else:
-                                    st.warning("Low confidence — no predictions above threshold")
+                                    st.caption("No confident identification")
+                                    with st.popover("⚠ Low confidence",
+                                                    use_container_width=True):
+                                        if is_novel:
+                                            st.markdown(
+                                                "This photo also looks unlike the training "
+                                                "specimens. Try a sharper, closer **dorsal** "
+                                                "photo on a **plain background**."
+                                            )
+                                        else:
+                                            st.markdown(
+                                                "No genus scored above the classification "
+                                                "confidence threshold. Lower the threshold in "
+                                                "the sidebar to see weaker candidates."
+                                            )
 
                             except Exception as ex:
                                 st.error(f"Error: {ex}")
+
+            if show_results:
+                render_guidance()
 
 with tab2:
     st.header("About the project")
@@ -431,10 +614,15 @@ with tab2:
         "unusual viewing angles, damaged specimens, unusual lighting, or "
         "natural variation within the genus. Treat the result as a strong lead "
         "but verify it against reference material before finalising.\n"
-        "- **Novel genus warning** — the specimen falls so far outside the "
-        "training distribution that no reliable identification can be made. "
-        "The model will still show a best guess, but this should be treated "
-        "with caution."
+        "- **Unusual image warning** — the specimen falls far outside the "
+        "training distribution. This has two possible causes, which the "
+        "measure cannot distinguish: the *photograph* is unlike the training "
+        "images (a low-magnification field photo, a cluttered background), or "
+        "the specimen belongs to a *genus the model was never trained on* "
+        "(only 76 genera are covered). In practice the first is far more "
+        "common, but a genuinely unknown genus would look the same. The "
+        "identification is still shown and should be verified against "
+        "reference material."
     )
 
     st.subheader("Technical notes")

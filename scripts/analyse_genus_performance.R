@@ -88,6 +88,7 @@ cat("  Saved: spearman_result.csv\n")
 
 # Label genera with notably lower F1 (below 0.96) for context
 label_df <- filter(df, f1_mean < 0.96)
+label_df <- filter(label_df, class_name == "Amarophilus" | class_name == "Diglymma" | class_name == "Neoferonia" | class_name == "Syllectus" | class_name == "Triplosarus")
 
 caption_text <- sprintf(
   "Spearman rho = %.3f (95%% CI: %.3f-%.3f), %s, n = %d genera",
@@ -123,13 +124,13 @@ p_scatter <- ggplot(df, aes(x = log10(n_images), y = f1_mean)) +
   coord_cartesian(ylim = c(NA, 1.005)) +
   labs(
     x       = "Training images per genus (log scale)",
-    y       = "Mean F1 score (cross-validation test set)",
-    caption = caption_text
+    y       = "Mean F1 score",
+    # caption = caption_text
   ) +
   theme_classic(base_size = 11) +
   theme(
     panel.grid.minor = element_blank(),
-    plot.caption     = element_text(size = 8, colour = "grey40")
+    # plot.caption     = element_text(size = 8, colour = "grey40")
   )
 
 ggsave(file.path(out_dir, "f1_vs_imagecount_scatter.pdf"),

@@ -135,11 +135,14 @@ carabID/
 │   ├── assess_classification_model.py
 │   └── plot_reliability_diagram.R
 │
-└── scripts/                        ← YOLO training scripts
+└── scripts/                        ← data preparation, training, analysis
+    ├── run_corrected_pipeline.py    ← split-before-augment dataset build
     ├── train_classification_model.py
+    ├── train_detection_model.py
     ├── kfold_train_classification_models.py
     ├── kfold_assess_classification_models.py
-    └── assess_classification_model.py
+    ├── evaluate_novelty_detection.py    ← validates the OOD threshold
+    └── ...                          ← figures and analysis (R + Python)
 ```
 
 `imgs/` (training data, available on [Zenodo](https://zenodo.org/records/20634783)) and `runs/` (model checkpoints) are excluded from version control.

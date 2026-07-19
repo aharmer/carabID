@@ -63,3 +63,5 @@ desktop.ini
 .idea/
 .vscode/
 *.code-workspace
+scratch_det_train.log
+yolo11s-cls.pt
