@@ -552,7 +552,9 @@ with tab2:
         "classification pipeline is used. The first stage detects the beetle "
         "thorax and elytra; the second classifies it to genus. "
         "Full details can be found in the associated publication: "
-        "Gong, Harmer & Ward (in review)."
+        "Gong Y, Harmer AMT, Ward DF. (2026). Deep learning pipeline "
+        "for the identification of ground beetles (Carabidae) in New Zealand. "
+        "New Zealand Journal of Zoology, 53, e70049. https://doi.org/10.1002/njz2.70049."
     )
     st.image(str(STATIC_DIR / "example_image.jpg"), width=350)
 
