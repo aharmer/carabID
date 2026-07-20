@@ -251,8 +251,8 @@ def render_guidance():
             )
         st.caption(
             "Field photos of live beetles are identified far less reliably and "
-            "will be flagged as *unusual images* — treat those results as "
-            "tentative and verify them against reference material."
+            "will raise the *unusual image or novel genus* warning — treat those "
+            "results as tentative and verify them against reference material."
         )
 
 
@@ -474,7 +474,7 @@ with tab1:
                                     # floats its detail rather than growing the
                                     # card the way an inline warning would.
                                     if is_novel:
-                                        with st.popover("⚠ Unusual image",
+                                        with st.popover("⚠ Unusual image or novel genus",
                                                         use_container_width=True):
                                             st.markdown(
                                                 "This specimen sits far from everything the "
@@ -614,7 +614,7 @@ with tab2:
         "unusual viewing angles, damaged specimens, unusual lighting, or "
         "natural variation within the genus. Treat the result as a strong lead "
         "but verify it against reference material before finalising.\n"
-        "- **Unusual image warning** — the specimen falls far outside the "
+        "- **Unusual image or novel genus warning** — the specimen falls far outside the "
         "training distribution. This has two possible causes, which the "
         "measure cannot distinguish: the *photograph* is unlike the training "
         "images (a low-magnification field photo, a cluttered background), or "
