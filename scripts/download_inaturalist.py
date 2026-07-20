@@ -31,6 +31,7 @@ import yaml
 
 API      = "https://api.inaturalist.org/v1/observations"
 NZ_PLACE = 6803
+AU_PLACE = 6744          # Australian congeners: same genera, related species
 REUSE    = "cc0,cc-by,cc-by-sa,cc-by-nc,cc-by-nc-sa"
 UA       = {"User-Agent": "carabID-research/1.0 (+https://github.com/aharmer/carabID)"}
 ROOT     = Path(__file__).resolve().parent.parent
@@ -90,8 +91,13 @@ def main():
                     choices=["medium", "large", "original"])
     ap.add_argument("--all-photos", action="store_true",
                     help="download every photo, not just the first")
+    ap.add_argument("--places", default=str(NZ_PLACE),
+                    help=f"comma-separated iNat place ids; NZ={NZ_PLACE}, "
+                         f"AU={AU_PLACE} (Australian congeners)")
     ap.add_argument("--global", dest="global_", action="store_true",
-                    help="do not restrict to New Zealand (not recommended)")
+                    help="do not restrict by place at all (not recommended: "
+                         "cosmopolitan genera return mostly northern-hemisphere "
+                         "species the model is not meant to identify)")
     ap.add_argument("--genera", default=None,
                     help="comma-separated subset; default is all in data.yaml")
     args = ap.parse_args()
@@ -104,7 +110,7 @@ def main():
     out_dir = ROOT / args.out
     out_dir.mkdir(parents=True, exist_ok=True)
     meta_path = out_dir / "attribution.csv"
-    place = None if args.global_ else NZ_PLACE
+    place = None if args.global_ else args.places
 
     seen = set()
     if meta_path.exists():                       # resume support
