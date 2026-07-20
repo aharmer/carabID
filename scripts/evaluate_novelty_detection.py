@@ -19,6 +19,7 @@ Reports, for the deployed model:
 Run from the carabID root:
     conda run -n ultralytics-env python scripts/evaluate_novelty_detection.py
 """
+import re
 import sys
 from pathlib import Path
 
@@ -86,7 +87,9 @@ def main():
 
     # ---- novel genera ------------------------------------------------- #
     files = sorted(f for f in OOD_DIR.iterdir() if f.suffix.lower() in IMG_EXTS)
-    genera = sorted({f.stem.split("-")[0].split("_")[0] for f in files})
+    # filenames are <Genus>-<species>... or nzac_<Genus>_<species>...
+    genera = sorted({re.split(r"[-_ ]", f.stem.replace("nzac_", "", 1))[0]
+                     for f in files})
     overlap = [g for g in genera if g in names]
     print(f"OOD genera present: {', '.join(genera)}")
     print(f"Any also in the trained 76? {overlap if overlap else 'no - all genuinely novel'}\n")
