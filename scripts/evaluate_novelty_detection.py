@@ -19,6 +19,7 @@ Reports, for the deployed model:
 Run from the carabID root:
     conda run -n ultralytics-env python scripts/evaluate_novelty_detection.py
 """
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -52,10 +53,23 @@ def contrast_stretch(img):
 
 
 def main():
-    det = YOLO(str(STATIC / "detection.pt"))
-    clf = YOLO(str(STATIC / "classification.pt")); clf.model.eval()
-    sc  = TemperatureScaler.load(STATIC / "temperature.pt")
-    ood = MahalanobisOOD.load(STATIC / "ood_model.pkl")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--weights", default=None,
+                    help="classification weights dir (best.pt, temperature.pt, "
+                         "ood_model.pkl). Defaults to the deployed app/static.")
+    ap.add_argument("--detection", default=None,
+                    help="detection .pt; defaults to the deployed one")
+    ap.add_argument("--known", default=None,
+                    help="directory of known-genus crops for the fallout rate")
+    args = ap.parse_args()
+
+    w = Path(args.weights) if args.weights else STATIC
+    det = YOLO(str(args.detection or (STATIC / "detection.pt")))
+    clf = YOLO(str(w / "best.pt" if args.weights else STATIC / "classification.pt"))
+    clf.model.eval()
+    sc  = TemperatureScaler.load(w / "temperature.pt")
+    ood = MahalanobisOOD.load(w / "ood_model.pkl")
+    known_dir = Path(args.known) if args.known else KNOWN_DIR
     names  = set(clf.names.values())
     linear = get_linear_layer(clf)
     thr = ood.threshold
@@ -104,7 +118,7 @@ def main():
     novel_scores = np.array(novel_scores)
 
     # ---- known genera (in-distribution lab crops) --------------------- #
-    known_files = [p for g in sorted(KNOWN_DIR.iterdir()) if g.is_dir()
+    known_files = [p for g in sorted(known_dir.iterdir()) if g.is_dir()
                    for p in list(g.glob("*.jpg"))[:3]]
     known_scores = np.array([score(Image.open(p).convert("RGB")) for p in known_files])
 

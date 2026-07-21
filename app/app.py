@@ -40,8 +40,12 @@ warnings.filterwarnings("ignore")
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 logging.getLogger("ultralytics").setLevel(logging.ERROR)
 
-# Static assets live alongside this file: app/static/
-STATIC_DIR = (Path(__file__).parent / "static").resolve()
+# Static assets live alongside this file: app/static/.  CARABID_STATIC points
+# the app at a different folder, so a candidate model can be tried in the real
+# app without overwriting the deployed one.
+STATIC_DIR = Path(
+    os.environ.get("CARABID_STATIC", Path(__file__).parent / "static")
+).resolve()
 
 # The novelty threshold lives on the calibration artefact, so every script
 # agrees on one value.  It is set to 2000 rather than the 5 % FPR fit of 1784:
