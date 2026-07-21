@@ -264,9 +264,25 @@ def render_guidance():
 #  Model loading                                                               #
 # --------------------------------------------------------------------------- #
 
+def artefact_signature():
+    """Modification times of the model artefacts.
+
+    Passed into load_models so the cache key changes when the files change.
+    Without this, st.cache_resource keeps the previously loaded model in memory
+    for the life of the server process, so a redeploy is silently ignored by an
+    already-running app and it keeps serving the old model.
+    """
+    sig = []
+    for name in ("detection.pt", "classification.pt",
+                 "temperature.pt", "ood_model.pkl"):
+        p = STATIC_DIR / name
+        sig.append((name, p.stat().st_mtime_ns if p.exists() else 0))
+    return tuple(sig)
+
+
 @st.cache_resource
-def load_models():
-    """Load YOLO models and calibration artefacts once at startup."""
+def load_models(signature):
+    """Load YOLO models and calibration artefacts once per artefact version."""
     detection_path      = STATIC_DIR / "detection.pt"
     classification_path = STATIC_DIR / "classification.pt"
     temperature_path    = STATIC_DIR / "temperature.pt"
@@ -324,7 +340,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-detection_model, classification_model, scaler, ood_detector, calibration_loaded = load_models()
+detection_model, classification_model, scaler, ood_detector, calibration_loaded = load_models(
+    artefact_signature())
 df_classes  = load_class_table()
 class_names = classification_model.names   # dict {int: str}
 
