@@ -52,23 +52,45 @@ def iter_pairs(root: Path):
                 yield img, lbl
 
 
+def parse_box(parts):
+    """Return (xc, yc, w, h) normalised, from either YOLO bbox or polygon.
+
+    Roboflow exports segmentation-style labels for some projects: the box
+    arrives as a closed 4-corner polygon (class + 5 xy pairs = 11 fields), not
+    as class/xc/yc/w/h. Reading the first two pairs as centre and size gives
+    nonsense, so the format has to be detected by field count.
+    """
+    vals = [float(v) for v in parts[1:]]
+    if len(vals) == 4:                       # class xc yc w h
+        return tuple(vals)
+    if len(vals) >= 6 and len(vals) % 2 == 0:   # class x1 y1 x2 y2 ...
+        pts = np.array(vals).reshape(-1, 2)
+        x1, y1 = pts[:, 0].min(), pts[:, 1].min()
+        x2, y2 = pts[:, 0].max(), pts[:, 1].max()
+        return ((x1+x2)/2, (y1+y2)/2, x2-x1, y2-y1)
+    return None
+
+
 def verify(root: Path, n_montage: int = 48):
     pairs = list(iter_pairs(root))
     if not pairs:
         sys.exit(f"no image/label pairs found under {root}")
 
-    aspects, covers, counts = [], [], []
+    aspects, covers, counts, fmts = [], [], [], set()
     for img, lbl in pairs:
         lines = [l for l in lbl.read_text().splitlines() if l.strip()]
         counts.append(len(lines))
         for line in lines:
             p = line.split()
-            if len(p) < 5:
+            fmts.add("bbox" if len(p) == 5 else "polygon")
+            box = parse_box(p)
+            if box is None:
                 continue
-            w, h = float(p[3]), float(p[4])
+            _, _, w, h = box
             if h > 0:
                 aspects.append(w / h)
             covers.append(w * h)
+    print(f"label format: {'/'.join(sorted(fmts))}")
 
     a, c = np.array(aspects), np.array(covers)
     print(f"pairs: {len(pairs)}   boxes: {len(a)}   "
@@ -98,9 +120,10 @@ def verify(root: Path, n_montage: int = 48):
         d = ImageDraw.Draw(im)
         for line in lbl_p.read_text().splitlines():
             p = line.split()
-            if len(p) < 5:
+            box = parse_box(p) if len(p) >= 5 else None
+            if box is None:
                 continue
-            xc, yc, w, h = (float(v) for v in p[1:5])
+            xc, yc, w, h = box
             d.rectangle([(xc-w/2)*W, (yc-h/2)*H, (xc+w/2)*W, (yc+h/2)*H],
                         outline=(255, 0, 0), width=max(3, W//200))
         im.thumbnail((TH, TH))
